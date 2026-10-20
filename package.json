@@ -1,0 +1,25 @@
+{
+  "name": "paperlens",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PaperLens \u2014 a local-first, annotation-grounded AI paper reader",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w web\"",
+    "build": "npm run build -w server && npm run build -w web",
+    "start": "npm run start -w server",
+    "lint": "npm run lint -w server && npm run lint -w web",
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w web",
+    "token": "node server/scripts/print-token.mjs",
+    "smoke": "npm run build -w server && node server/scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
