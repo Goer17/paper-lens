@@ -1,5 +1,27 @@
 # Development log
 
+## 2026-10-20 — repository, deploy branch, Docker deployment
+
+- Completed `.gitignore` (workspace deps, build output, runtime data, secrets, test artifacts, OS /
+  editor files, local Compose overrides) and initialised the repository with `main` as the stable
+  branch. Pushed to `git@github.com:Goer17/paper-lens.git` over SSH.
+- Created the **`deploy`** working branch. All future development, fixes and deployment changes go
+  there; `main` is updated only after explicit user approval. This workflow is now enforced in
+  `AGENTS.md`.
+- Added a multi-stage `Dockerfile` (Node 22 slim; builds both packages, runtime installs only server
+  production dependencies, runs as the unprivileged `node` user, healthcheck) plus `.dockerignore`
+  and `docker-compose.yml` with a named data volume and a loopback-only port binding.
+- Added `docs/DEPLOYMENT.md`: Docker quick start, token retrieval, upgrades, backup/restore, native
+  systemd deployment, deploy checklist and security notes. Updated README, PLAN, TODO, ARCHITECTURE
+  and AGENTS accordingly.
+- The server no longer prints the access token at startup. The token stays in
+  `server/data/token.txt` (mode `0600`) or `APP_TOKEN`; use `npm run token` when needed. This keeps
+  container logs free of credentials.
+- Verified: `npm run typecheck`, `npm run build`, `npm run smoke` (29 checks), `docker compose build`
+  (338 MB image), `docker compose up -d`, `/api/health` OK, SPA `200`, authorized collections call,
+  and the token is absent from container logs. The deployment uses its own `paperlens-data` volume and
+  does not touch `server/data/`.
+
 ## 2026-10-20 — Renamed to PaperLens
 
 - Product/display name is now **PaperLens** (README, UI title, login, app header, server banner,

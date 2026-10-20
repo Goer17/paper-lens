@@ -93,8 +93,9 @@ npm run dev
 
 - Web app: <http://localhost:5173>
 - API: <http://127.0.0.1:8787>
-- The access token is printed in the server console and stored in `server/data/token.txt`.
-  Paste it once on the login screen; the browser remembers it. `npm run token` prints it again.
+- The access token is stored in `server/data/token.txt` (or supplied through `APP_TOKEN`).
+  Paste it once on the login screen; the browser remembers it. `npm run token` prints it.
+  The token is intentionally not written to the server log.
 - Shortcut: open `http://localhost:5173/?token=<TOKEN>`; the token is stored and removed from the URL.
 
 ### Debug model
@@ -117,6 +118,24 @@ npm start
 ```
 
 The API server serves the built SPA on <http://127.0.0.1:8787>. Override with `HOST` / `PORT`.
+
+Docker is the recommended deployment:
+
+```bash
+git clone -b deploy git@github.com:Goer17/paper-lens.git
+cd paper-lens
+cp .env.example .env      # optional: set APP_TOKEN or DEEPSEEK_API_KEY
+docker compose up -d --build
+docker compose exec paperlens cat /data/token.txt
+```
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for backups, upgrades, native systemd setup and
+security notes.
+
+### Branch workflow
+
+All development happens on the **`deploy`** branch. Changes are merged into `main` only after the
+user has reviewed and approved them. See [AGENTS.md](AGENTS.md).
 
 ---
 
@@ -149,10 +168,13 @@ The API server serves the built SPA on <http://127.0.0.1:8787>. Override with `H
 paperlens/
 ├── AGENTS.md               # Guide for AI coding agents and contributors
 ├── README.md
+├── Dockerfile              # Multi-stage production image
+├── docker-compose.yml      # Loopback-only deployment with a data volume
 ├── docs/
 │   ├── PLAN.md             # Product plan and requirements
 │   ├── ARCHITECTURE.md     # Data model, flows, decisions
 │   ├── API.md              # HTTP API and SSE contract
+│   ├── DEPLOYMENT.md       # Docker, systemd, backups and security
 │   ├── TODO.md             # Shipped work and roadmap
 │   └── DEVLOG.md           # Development log
 ├── server/                 # Express API, SQLite, SSE, AI tools
@@ -202,6 +224,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design.
 - [Product plan](docs/PLAN.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [HTTP API](docs/API.md)
+- [Deployment](docs/DEPLOYMENT.md)
 - [TODO / roadmap](docs/TODO.md)
 - [Development log](docs/DEVLOG.md)
 

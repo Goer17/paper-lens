@@ -75,7 +75,8 @@ folder sets `collection_id` to `NULL` (Uncategorized).
 ## Authentication
 
 - A random 24-byte URL-safe token is generated on first boot (or taken from `APP_TOKEN`), written to
-  `server/data/token.txt` with mode `0600`, and printed in the console.
+  `server/data/token.txt` with mode `0600`, and never printed in the server log. `npm run token`
+  prints it on demand.
 - Clients store it in `localStorage` and send `Authorization: Bearer <token>`.
 - `timingSafeEqual` comparison. All `/api` routes except `/api/health` and `/api/auth/login` are
   protected.

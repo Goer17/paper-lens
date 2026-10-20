@@ -42,6 +42,31 @@ npm run token               # print the current access token
 Open http://localhost:5173. The API binds to `127.0.0.1:8787` by default. Vite proxies `/api` to
 `http://127.0.0.1:8787`.
 
+```bash
+git checkout deploy        # all development happens here
+npm run build              # then serve the production SPA + API
+docker compose up -d --build   # optional containerized deployment
+```
+
+### Branch workflow (mandatory)
+
+- **`deploy` is the working branch.** Do all development, fixes, documentation and deployment
+  changes there.
+- **`main` is the stable, user-approved branch.** Never push directly to `main` and never merge
+  `deploy` into `main` on your own initiative.
+- After the user explicitly confirms that the `deploy` branch is good, merge it into `main`:
+
+  ```bash
+  git checkout deploy && git pull
+  git checkout main && git pull
+  git merge --no-ff deploy
+  git push origin main
+  git checkout deploy && git merge main   # keep deploy in sync
+  ```
+
+- If the user has not explicitly approved the work, stop after pushing `deploy` and report the
+  branch, commits and verification results.
+
 Useful env vars:
 
 | Variable | Purpose |
@@ -54,7 +79,8 @@ Useful env vars:
 | `APP_TOKEN` | Overrides the generated workspace token |
 | `PAPER_READER_DATA` | Data directory, default `server/data` |
 
-Token file: `server/data/token.txt` (mode `0600`).
+Token file: `server/data/token.txt` (mode `0600`). The token is intentionally not printed by the
+server at startup; use `npm run token` or read the file when you need it.
 
 ---
 
@@ -90,8 +116,10 @@ Token file: `server/data/token.txt` (mode `0600`).
 13. **Do not add telemetry, cloud storage, analytics, or a multi-user auth system** without explicit
     approval.
 14. Update documentation when behavior, API shape, data model or workflow changes:
-    `README.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/TODO.md`,
-    `docs/DEVLOG.md`.
+    `README.md`, `docs/PLAN.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DEPLOYMENT.md`,
+    `docs/TODO.md`, `docs/DEVLOG.md`.
+15. **Develop on `deploy`; merge to `main` only after explicit user approval.** Never commit
+    application or deployment changes directly to `main`, and never rewrite published history.
 
 ---
 
@@ -101,12 +129,17 @@ Token file: `server/data/token.txt` (mode `0600`).
 paperlens/
 ├── AGENTS.md                 # this file
 ├── README.md                 # user-facing setup and feature overview
+├── Dockerfile                # multi-stage production image
+├── docker-compose.yml        # loopback deployment + persistent data volume
+├── .dockerignore
+├── .gitignore
 ├── package.json              # npm workspace + root scripts
 ├── node_modules/             # gitignored
 ├── docs/
 │   ├── PLAN.md               # product plan, requirements, milestones
 │   ├── ARCHITECTURE.md       # data model, flows, design decisions
 │   ├── API.md                # HTTP API and SSE contract
+│   ├── DEPLOYMENT.md         # Docker, systemd, backups, security
 │   ├── TODO.md               # shipped + roadmap
 │   └── DEVLOG.md             # decisions and change history
 ├── server/
@@ -483,6 +516,17 @@ npm run smoke       # builds the server, then runs isolated API checks
 
 Add checks for new API behavior. Do not make the smoke test depend on the network or an LLM.
 
+For deployment changes, also verify the production image:
+
+```bash
+docker compose build
+docker compose up -d
+curl -fsS http://127.0.0.1:8787/api/health
+```
+
+Use an isolated Compose project name (`docker compose -p paperlens-check ...`) or a temporary volume
+when you do not want to touch an existing deployment.
+
 ### Isolated manual testing (recommended)
 
 Avoid mutating the live library:
@@ -543,6 +587,8 @@ A change is complete only when:
 - [ ] `npm run smoke` passes when server/API behavior changed.
 - [ ] Relevant browser flows were exercised (or the limitation is called out).
 - [ ] No live user data was deleted or mutated without permission.
+- [ ] Work was committed to `deploy`; `main` was updated only after explicit user approval.
+- [ ] `docker compose build` and `/api/health` pass when deployment files changed.
 - [ ] No secrets are logged, returned or committed.
 - [ ] No `window.confirm` / `window.prompt` / `window.alert` were introduced.
 - [ ] UI copy is English and styling uses existing tokens.
@@ -593,4 +639,6 @@ Ask the user before:
 - replacing core libraries (PDF.js, React, SQLite, Express, OpenAI SDK);
 - changing the UI language or design system;
 - large schema rewrites or destructive migrations;
-- force-pushing or rewriting git history.
+- force-pushing or rewriting git history;
+- merging `deploy` into `main` without explicit approval;
+- changing deployment networking or exposing the API beyond loopback.

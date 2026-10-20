@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import multer from 'multer';
-import { APP_TOKEN, config } from './config.js';
+import { config } from './config.js';
 import { db } from './db.js';
 import { requireAuth } from './auth.js';
 import { HttpError } from './http.js';
@@ -78,10 +78,10 @@ const server = app.listen(config.port, config.host, () => {
   console.log(`\n${line}`);
   console.log('  PAPERLENS · API server');
   console.log(`  URL    http://${config.host}:${config.port}`);
-  console.log(`  Token  ${APP_TOKEN}`);
-  console.log(`  File   ${config.tokenFile}`);
+  console.log(`  Token  ${config.tokenFile}`);
+  console.log(`  Data   ${config.dataDir}`);
   console.log(`${line}`);
-  console.log('  Open the web app and paste the token once.');
+  console.log('  Open the web app and paste the token once (npm run token).');
   console.log('  Dev: npm run dev  ·  Prod: npm run build && npm start\n');
 });
 

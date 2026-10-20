@@ -151,7 +151,7 @@ them while keeping data local and the interface small.
 
 ### First launch
 
-1. User starts `npm run dev`, gets a token from the console/file.
+1. User starts `npm run dev` and gets the token from `server/data/token.txt` (`npm run token`).
 2. Enters the token once; browser stores it.
 3. Empty workspace shows a drop zone and a default folder.
 
@@ -250,7 +250,9 @@ them while keeping data local and the interface small.
   `unpdf`.
 - **Title detection:** first-page text + metadata + filename → first enabled model → fallback.
 - **Skills:** adm-zip extraction with path/size checks; instructions are read, never executed.
-- **Deployment:** local dev (Vite + API) and single-port production (API serves built SPA).
+- **Deployment:** local dev (Vite + API), single-port production (API serves the built SPA), and a
+  loopback-only Docker Compose image (see [DEPLOYMENT.md](DEPLOYMENT.md)). `deploy` is the working
+  branch; `main` only receives user-approved merges.
 
 ## 10. Data model summary
 

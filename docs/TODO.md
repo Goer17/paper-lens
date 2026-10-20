@@ -83,7 +83,8 @@ Living task list. Keep completed items for history; move detailed discussion to 
 - [ ] Frontend component tests / Playwright happy path
 - [ ] Structured logging and request IDs
 - [ ] Database migrations with `user_version`
-- [ ] Dockerfile and compose example
-- [ ] CI workflow (typecheck, build, smoke)
+- [x] Dockerfile and compose example (loopback-only, non-root, data volume, healthcheck)
+- [x] Deployment guide (`docs/DEPLOYMENT.md`) and `deploy` branch workflow
+- [ ] CI workflow (typecheck, build, smoke, Docker image)
 - [ ] Accessibility pass (focus rings, aria labels, reduced motion)
 - [ ] i18n scaffolding for the UI (UI copy stays English for now)
