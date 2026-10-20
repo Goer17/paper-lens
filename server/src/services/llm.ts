@@ -408,11 +408,16 @@ function loadHistory(paperId: string): ChatCompletionMessageParam[] {
 
 type PendingCall = { id: string; name: string; arguments: string };
 
+function visionErrorHint(message: string, hasImages: boolean): string {
+  if (!hasImages) return '';
+  if (!/image|vision|multimodal|image_url|content.?type|invalid.*content/i.test(message)) return '';
+  return ' This model does not support image input (vision). Remove the box citation or use a vision-capable model.';
+}
+
 async function runModel(
   model: ModelRow,
   context: StreamContext,
   baseMessages: ChatCompletionMessageParam[],
-  imageParts: { type: 'image_url'; image_url: { url: string } }[],
 ): Promise<{ content: string; modelLabel: string }> {
   const client = new OpenAI({
     apiKey: model.api_key,
@@ -433,16 +438,6 @@ async function runModel(
     context.emittedText.value = true;
     context.send('delta', { text });
   };
-
-  if (model.vision && imageParts.length) {
-    const last = messages[messages.length - 1];
-    if (last && last.role === 'user' && typeof last.content === 'string') {
-      messages[messages.length - 1] = {
-        role: 'user',
-        content: [{ type: 'text', text: last.content }, ...imageParts],
-      };
-    }
-  }
 
   for (let step = 0; step < 6; step += 1) {
     const stream = await client.chat.completions.create(
@@ -590,13 +585,11 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
     createdAt,
   );
 
-  let imageParts: { type: 'image_url'; image_url: { url: string } }[] = [];
-  const visionModel = getEnabledModels().find((model) => model.vision);
-  if (visionModel) {
-    const images = citations
-      .filter((citation) => citation.type === 'box' && citation.imageName)
-      .slice(0, 4);
-    imageParts = images.flatMap((citation) => {
+  const images = citations
+    .filter((citation) => citation.type === 'box' && citation.imageName)
+    .slice(0, 4);
+  const imageParts: { type: 'image_url'; image_url: { url: string } }[] = images.flatMap(
+    (citation) => {
       try {
         const file = path.join(config.annotationDir, citation.imageName as string);
         if (!fs.existsSync(file)) return [];
@@ -610,8 +603,8 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
       } catch {
         return [];
       }
-    });
-  }
+    },
+  );
 
   const text = payload.message + citationBlock(citations);
   const userContent: ChatCompletionMessageParam['content'] = imageParts.length
@@ -646,7 +639,7 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
         attempt: index + 1,
         total: models.length,
       });
-      const result = await runModel(model, context, baseMessages, imageParts);
+      const result = await runModel(model, context, baseMessages);
       finalModel = result.modelLabel;
       errorMessage = '';
       break;
@@ -656,14 +649,15 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
         break;
       }
       const message = error instanceof Error ? error.message : 'Model request failed.';
+      const imageHint = visionErrorHint(message, imageParts.length > 0);
       if (emittedText.value || traces.some((trace) => trace.ok)) {
-        errorMessage = `${model.name} failed: ${message}`;
+        errorMessage = `${model.name} failed: ${message}${imageHint}`;
         break;
       }
       context.send('warning', {
-        message: `${model.name} failed (${message}). Trying the next model…`,
+        message: `${model.name} failed (${message}).${imageHint} Trying the next model…`,
       });
-      errorMessage = `All models failed. Last error from ${model.name}: ${message}`;
+      errorMessage = `All models failed. Last error from ${model.name}: ${message}${imageHint}`;
       if (index === models.length - 1) break;
     }
   }

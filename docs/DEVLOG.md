@@ -1,5 +1,57 @@
 # Development log
 
+## 2026-10-20 — remove vision toggle, simplify UI copy
+
+- Removed the per-model **Vision** checkbox, `VISION` badge, API field and client types. Box-crop
+  images are now attached as `image_url` parts for every model by default.
+- Text-only providers now surface a clear error instead of being pre-filtered: if the provider rejects
+  an image request, the warning/error says the model does not support image input (vision) and
+  suggests removing the box citation or using a vision-capable model. The fallback chain still runs.
+- Kept the legacy `models.vision` SQLite column for compatibility but stopped reading, writing or
+  exposing it. Added smoke checks that the field is gone and legacy PATCH updates are ignored.
+- Removed technical and redundant UI copy: the SQLite/library paragraph on the empty reader, the
+  `LOCAL · SQLITE` / `MONO UI` sidebar footer, the login token instructions, settings hints and
+  notes, and the "workspace preferences" subtitle.
+- Removed model-form input placeholders and placeholder-style strings (`No description provided.`,
+  `drag & drop accepted`).
+- Verified: `npm run typecheck`, production builds for both packages, `npm run smoke` (31 checks),
+  Docker image rebuild, healthy container, authenticated models call without a `vision` field, and a
+  public HTTP 200 from an external check node.
+
+## 2026-10-20 — opt-in public binding
+
+- Added `PAPERLENS_BIND` (published address, default `127.0.0.1`) and `PAPERLENS_PORT` (host port,
+  default `8787`) to Compose. Public deployment is now explicit: `PAPERLENS_BIND=0.0.0.0` in `.env`.
+- Documented public access, firewall/security-group requirements, direct-HTTP risks and an HTTPS
+  reverse-proxy example in `docs/DEPLOYMENT.md`. The local deployment was switched to
+  `0.0.0.0:8787` for public access.
+- Added rule 16 to `AGENTS.md`: loopback stays the default, public binding is opt-in and must be
+  documented with TLS guidance; `.env` is never committed.
+- Verified: Compose interpolation, container recreated, listener bound to `0.0.0.0:8787`, health and
+  authenticated API checks pass, token still absent from logs.
+
+## 2026-10-20 — repository, deploy branch, Docker deployment
+
+- Completed `.gitignore` (workspace deps, build output, runtime data, secrets, test artifacts, OS /
+  editor files, local Compose overrides) and initialised the repository with `main` as the stable
+  branch. Pushed to `git@github.com:Goer17/paper-lens.git` over SSH.
+- Created the **`deploy`** working branch. All future development, fixes and deployment changes go
+  there; `main` is updated only after explicit user approval. This workflow is now enforced in
+  `AGENTS.md`.
+- Added a multi-stage `Dockerfile` (Node 22 slim; builds both packages, runtime installs only server
+  production dependencies, runs as the unprivileged `node` user, healthcheck) plus `.dockerignore`
+  and `docker-compose.yml` with a named data volume and a loopback-only port binding.
+- Added `docs/DEPLOYMENT.md`: Docker quick start, token retrieval, upgrades, backup/restore, native
+  systemd deployment, deploy checklist and security notes. Updated README, PLAN, TODO, ARCHITECTURE
+  and AGENTS accordingly.
+- The server no longer prints the access token at startup. The token stays in
+  `server/data/token.txt` (mode `0600`) or `APP_TOKEN`; use `npm run token` when needed. This keeps
+  container logs free of credentials.
+- Verified: `npm run typecheck`, `npm run build`, `npm run smoke` (29 checks), `docker compose build`
+  (338 MB image), `docker compose up -d`, `/api/health` OK, SPA `200`, authorized collections call,
+  and the token is absent from container logs. The deployment uses its own `paperlens-data` volume and
+  does not touch `server/data/`.
+
 ## 2026-10-20 — Renamed to PaperLens
 
 - Product/display name is now **PaperLens** (README, UI title, login, app header, server banner,

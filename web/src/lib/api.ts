@@ -166,7 +166,6 @@ export const api = {
     base_url: string;
     api_key: string;
     model_name: string;
-    vision: boolean;
   }) => request<{ model: Model }>('/api/models', json('POST', payload)),
 
   updateModel: (
@@ -176,7 +175,6 @@ export const api = {
       base_url: string;
       api_key: string;
       model_name: string;
-      vision: boolean;
       enabled: boolean;
     }>,
   ) => request<{ model: Model }>(`/api/models/${id}`, json('PATCH', patch)),

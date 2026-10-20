@@ -45,10 +45,6 @@ export function Login({ initialToken = '', onLogin }: Props) {
         </div>
 
         <h1 className="login-title">Unlock your library</h1>
-        <p className="login-sub">
-          This workspace is protected by a randomly generated access token. You only need to enter
-          it once — the browser remembers it.
-        </p>
 
         <label className="login-label" htmlFor="token">
           ACCESS TOKEN
@@ -72,7 +68,6 @@ export function Login({ initialToken = '', onLogin }: Props) {
             autoFocus
             autoComplete="off"
             spellCheck={false}
-            placeholder="paste token…"
             value={token}
             onChange={(event) => setToken(event.target.value)}
           />
@@ -84,13 +79,6 @@ export function Login({ initialToken = '', onLogin }: Props) {
         </button>
 
         {error && <div className="login-error">{error}</div>}
-
-        <div className="login-hint">
-          The token is printed in the server console when it starts and stored in{' '}
-          <code>server/data/token.txt</code>. Run <code>npm run token</code> to print it again.
-          <br />
-          Tip: after signing in once, this browser keeps the token automatically.
-        </div>
 
         <div className="login-foot">
           <span>PDF · ANNOTATIONS · AI</span>

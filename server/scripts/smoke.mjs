@@ -223,6 +223,17 @@ async function main() {
   });
   check(brokenModel.status === 201 && brokenModel.body.model.has_key, 'add a model with a masked key');
   check(!JSON.stringify(brokenModel.body.model).includes('smoke-key'), 'never return the raw API key');
+  check(!('vision' in brokenModel.body.model), 'models no longer expose a vision flag');
+
+  const legacyVision = await request(`/api/models/${brokenModel.body.model.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vision: true }),
+  });
+  check(
+    legacyVision.status === 200 && !('vision' in legacyVision.body.model),
+    'legacy vision updates are ignored',
+  );
 
   const disabled = await request(`/api/models/${brokenModel.body.model.id}`, {
     method: 'PATCH',

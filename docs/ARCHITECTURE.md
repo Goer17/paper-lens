@@ -65,7 +65,7 @@ SQLite, WAL mode, foreign keys ON.
 | `annotations` | `id`, `paper_id → papers`, `type` (`highlight`/`underline`/`box`), `page`, `label`, `color`, `rects` JSON, `text`, `note`, `image_name` |
 | `paper_pages` | `(paper_id, page)` → extracted text (lazy cache) |
 | `messages` | `id`, `paper_id`, `role`, `content`, `citations` JSON, `tools` JSON, `model`, `created_at` |
-| `models` | `id`, `name`, `base_url`, `api_key`, `model_name`, `enabled`, `vision`, `sort_order` |
+| `models` | `id`, `name`, `base_url`, `api_key`, `model_name`, `enabled`, `sort_order` (legacy `vision` column is unused) |
 | `skills` | `id`, `name`, `description`, `dir_name`, `file_count`, `created_at` |
 | `settings` | `key` / `value` (`theme_color`, `ai_language`, `notes_rail`) |
 
@@ -75,7 +75,8 @@ folder sets `collection_id` to `NULL` (Uncategorized).
 ## Authentication
 
 - A random 24-byte URL-safe token is generated on first boot (or taken from `APP_TOKEN`), written to
-  `server/data/token.txt` with mode `0600`, and printed in the console.
+  `server/data/token.txt` with mode `0600`, and never printed in the server log. `npm run token`
+  prints it on demand.
 - Clients store it in `localStorage` and send `Authorization: Bearer <token>`.
 - `timingSafeEqual` comparison. All `/api` routes except `/api/health` and `/api/auth/login` are
   protected.
@@ -144,7 +145,7 @@ folder sets `collection_id` to `NULL` (Uncategorized).
    - system: paper title/pages, `ai_language`, citation rules, Markdown rules, available skills;
    - last 16 messages (with citation excerpts re-attached);
    - current user message + `<citation>` blocks.
-3. For box citations, if the selected model is marked **vision**, image parts are attached.
+3. For box citations, the saved PNG crop is attached as an image part.
 4. The provider chain is ordered by `sort_order`. Each model runs the OpenAI SDK streaming tool loop
    (up to 6 steps):
    - `search_paper`, `read_page`, `read_pages`, `list_annotations`, `read_annotation`,

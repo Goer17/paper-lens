@@ -27,10 +27,6 @@ export function EmptyReader({ uploading, folderName, onUpload }: Props) {
             <FilePlus2 size={28} />
           </div>
           <h2>Open a paper, or add a new one</h2>
-          <p>
-            Pick a paper on the left to read it here. PDFs are stored in your local SQLite library;
-            annotations and AI conversations stay attached to each paper.
-          </p>
 
           <div
             className={`dropzone ${dragging ? 'dragging' : ''}`}

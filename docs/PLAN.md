@@ -108,7 +108,7 @@ them while keeping data local and the interface small.
 
 - Slide-over chat locked to the active paper.
 - Attach annotations by dragging them into the panel; composer shows chips like `@3:underline_1`.
-- Box citations include text and a crop; vision-capable models receive the image.
+- Box citations include text and a crop; the crop is sent as an image input.
 - Streaming SSE responses; stop button; clear thread; persisted history.
 - Visible tool-call trace including arguments and success/failure.
 - Tools:
@@ -122,7 +122,7 @@ them while keeping data local and the interface small.
 ### 5.6 Models and language — shipped
 
 - Provider list stored locally:
-  - base URL, API key, model name, display name, optional vision flag;
+  - base URL, API key, model name and display name;
   - add, reorder (priority), enable/disable, test connection, delete;
   - disabling moves the model to the bottom and excludes it from calls;
   - keys never returned unmasked.
@@ -151,7 +151,7 @@ them while keeping data local and the interface small.
 
 ### First launch
 
-1. User starts `npm run dev`, gets a token from the console/file.
+1. User starts `npm run dev` and gets the token from `server/data/token.txt` (`npm run token`).
 2. Enters the token once; browser stores it.
 3. Empty workspace shows a drop zone and a default folder.
 
@@ -180,7 +180,7 @@ them while keeping data local and the interface small.
 ### Configure a model
 
 1. Settings → Models → New model.
-2. Enter base URL, API key, model name (and vision if applicable).
+2. Enter base URL, API key and model name.
 3. Test, reorder, disable or delete.
 4. Response language is set in the same tab.
 
@@ -250,7 +250,9 @@ them while keeping data local and the interface small.
   `unpdf`.
 - **Title detection:** first-page text + metadata + filename → first enabled model → fallback.
 - **Skills:** adm-zip extraction with path/size checks; instructions are read, never executed.
-- **Deployment:** local dev (Vite + API) and single-port production (API serves built SPA).
+- **Deployment:** local dev (Vite + API), single-port production (API serves the built SPA), and a
+  loopback-only Docker Compose image (see [DEPLOYMENT.md](DEPLOYMENT.md)). `deploy` is the working
+  branch; `main` only receives user-approved merges.
 
 ## 10. Data model summary
 

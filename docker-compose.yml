@@ -1,0 +1,43 @@
+name: paperlens
+
+services:
+  paperlens:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: paperlens:latest
+    container_name: paperlens
+    restart: unless-stopped
+    ports:
+      # Loopback by default. Set PAPERLENS_BIND=0.0.0.0 in .env to expose the
+      # app publicly; put a TLS reverse proxy in front of it first.
+      - "${PAPERLENS_BIND:-127.0.0.1}:${PAPERLENS_PORT:-8787}:8787"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      PAPER_READER_DATA: /data
+    # Optional: copy .env.example to .env to seed DEEPSEEK_API_KEY or APP_TOKEN.
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - paperlens-data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:' + (process.env.PORT || 8787) + '/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+volumes:
+  paperlens-data:
