@@ -1,5 +1,17 @@
 # Development log
 
+## 2026-10-20 — opt-in public binding
+
+- Added `PAPERLENS_BIND` (published address, default `127.0.0.1`) and `PAPERLENS_PORT` (host port,
+  default `8787`) to Compose. Public deployment is now explicit: `PAPERLENS_BIND=0.0.0.0` in `.env`.
+- Documented public access, firewall/security-group requirements, direct-HTTP risks and an HTTPS
+  reverse-proxy example in `docs/DEPLOYMENT.md`. The local deployment was switched to
+  `0.0.0.0:8787` for public access.
+- Added rule 16 to `AGENTS.md`: loopback stays the default, public binding is opt-in and must be
+  documented with TLS guidance; `.env` is never committed.
+- Verified: Compose interpolation, container recreated, listener bound to `0.0.0.0:8787`, health and
+  authenticated API checks pass, token still absent from logs.
+
 ## 2026-10-20 — repository, deploy branch, Docker deployment
 
 - Completed `.gitignore` (workspace deps, build output, runtime data, secrets, test artifacts, OS /

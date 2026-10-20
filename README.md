@@ -129,8 +129,11 @@ docker compose up -d --build
 docker compose exec paperlens cat /data/token.txt
 ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for backups, upgrades, native systemd setup and
-security notes.
+The Compose binding defaults to loopback. To expose PaperLens publicly, set
+`PAPERLENS_BIND=0.0.0.0` in `.env` and allow the port in your firewall/security group. Plain HTTP
+sends the access token in cleartext — put an HTTPS reverse proxy in front for real use. See
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for public-access, backups, upgrades, native systemd setup
+and security notes.
 
 ### Branch workflow
 

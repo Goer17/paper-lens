@@ -120,6 +120,9 @@ server at startup; use `npm run token` or read the file when you need it.
     `docs/TODO.md`, `docs/DEVLOG.md`.
 15. **Develop on `deploy`; merge to `main` only after explicit user approval.** Never commit
     application or deployment changes directly to `main`, and never rewrite published history.
+16. **Keep loopback the default.** Binding to `0.0.0.0` requires explicit approval, must stay opt-in
+    (`PAPERLENS_BIND` for Docker, `HOST` for native), and must be documented with TLS guidance.
+    Never commit `.env`.
 
 ---
 
@@ -641,4 +644,5 @@ Ask the user before:
 - large schema rewrites or destructive migrations;
 - force-pushing or rewriting git history;
 - merging `deploy` into `main` without explicit approval;
-- changing deployment networking or exposing the API beyond loopback.
+- changing deployment networking or exposing the API beyond loopback without explicit approval
+  (public binding is opt-in via `PAPERLENS_BIND` / `HOST`; document the TLS and token risks).

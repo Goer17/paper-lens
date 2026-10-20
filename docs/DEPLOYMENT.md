@@ -2,6 +2,7 @@
 
 PaperLens is a single-user, local-first application. The recommended deployment is one Node.js
 process (or one Docker container) serving both the API and the built SPA on a loopback address.
+Public exposure is opt-in and should be protected with TLS.
 
 All deployment work lives on the **`deploy`** branch. Development happens there too; changes are
 merged into `main` only after the user has reviewed and approved them.
@@ -24,8 +25,9 @@ docker compose up -d --build
 ```
 
 - App: <http://127.0.0.1:8787>
-- The container publishes only on host loopback (`127.0.0.1:8787`).
+- By default the container publishes only on host loopback (`127.0.0.1:8787`).
 - Data is stored in the named volume `paperlens_paperlens-data`.
+- `PAPERLENS_BIND` changes the published address, `PAPERLENS_PORT` changes the host port.
 
 Retrieve the generated access token (never commit or share it):
 
@@ -158,12 +160,53 @@ Expected health payload: `{"ok":true,"name":"paperlens","version":"0.1.0"}`.
 
 ---
 
+## Public access
+
+The default binding is loopback. To publish PaperLens on every host interface:
+
+```bash
+echo 'PAPERLENS_BIND=0.0.0.0' >> .env
+docker compose up -d
+```
+
+Then allow inbound TCP `8787` in the host firewall / cloud security group and open
+`http://<public-ip>:8787`. If port 8787 is not open, set `PAPERLENS_PORT` (for example `80`) in
+`.env` before recreating the container.
+
+> **Warning:** plain HTTP sends the access token, PDFs, annotations and chat messages across the
+> network unencrypted. The token is a password equivalent: anyone who captures it can read the
+> library and spend your configured model credits. For anything beyond a short test, put an HTTPS
+> reverse proxy in front of PaperLens and keep the app on loopback.
+
+Example with Caddy on the host (paperlens stays bound to `127.0.0.1:8787`):
+
+```caddyfile
+paperlens.example.com {
+  reverse_proxy 127.0.0.1:8787
+}
+```
+
+Caddy obtains and renews the TLS certificate automatically. Alternatively use nginx, Cloudflare
+Tunnel or Tailscale Serve. If you use a reverse proxy, do not publish port 8787 publicly.
+
+For a direct public deployment, also:
+
+- set `APP_TOKEN` to a long random value and keep `.env` mode `600`;
+- restrict the cloud security group to known source IPs when possible;
+- monitor model/provider usage, because a leaked token can trigger paid API calls;
+- keep the host OS and Docker patched, and take regular volume backups.
+
+---
+
 ## Security notes
 
 - PaperLens is single-user and uses one bearer token. It has no accounts, roles or TLS.
-- Keep `HOST=127.0.0.1` for native installs and keep the Compose port binding on `127.0.0.1`.
-- To expose it remotely, put an HTTPS reverse proxy (Caddy, nginx, Tailscale Serve) in front and
-  require its own authentication. Do not publish port 8787 directly to the internet.
+- Keep `HOST=127.0.0.1` for native installs and keep the Compose binding on `127.0.0.1` unless
+  public access is explicitly required.
+- Public exposure requires `PAPERLENS_BIND=0.0.0.0` (Docker) or `HOST=0.0.0.0` (native). Prefer an
+  HTTPS reverse proxy (Caddy, nginx, Cloudflare Tunnel, Tailscale Serve) over direct plain HTTP.
+- There is no rate limiting on the login endpoint. Use a long token and restrict network access
+  when the app is public.
 - Provider API keys are stored in plaintext in the local SQLite database because the app is
   local-first. Protect `PAPER_READER_DATA` and the Docker volume accordingly.
 - `APP_TOKEN`, provider keys and files under the data directory must never be committed or logged.

@@ -9,9 +9,9 @@ services:
     container_name: paperlens
     restart: unless-stopped
     ports:
-      # Publish only on the host loopback interface. Put a TLS reverse proxy in
-      # front of PaperLens if you intentionally expose it to a network.
-      - "127.0.0.1:8787:8787"
+      # Loopback by default. Set PAPERLENS_BIND=0.0.0.0 in .env to expose the
+      # app publicly; put a TLS reverse proxy in front of it first.
+      - "${PAPERLENS_BIND:-127.0.0.1}:${PAPERLENS_PORT:-8787}:8787"
     environment:
       HOST: 0.0.0.0
       PORT: "8787"
