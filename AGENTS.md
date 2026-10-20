@@ -71,13 +71,13 @@ Useful env vars:
 
 | Variable | Purpose |
 | --- | --- |
-| `DEEPSEEK_API_KEY` | Seeds the debug model on the first empty database |
-| `DEEPSEEK_BASE_URL` | Defaults to `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | Defaults to `deepseek-flash` |
 | `PORT` | API port, default `8787` |
 | `HOST` | API bind address, default `127.0.0.1` |
 | `APP_TOKEN` | Overrides the generated workspace token |
 | `PAPER_READER_DATA` | Data directory, default `server/data` |
+
+No AI provider is seeded from environment variables. Users add their own OpenAI-compatible model in
+**Settings → Models**.
 
 Token file: `server/data/token.txt` (mode `0600`). The token is intentionally not printed by the
 server at startup; use `npm run token` or read the file when you need it.
@@ -513,7 +513,7 @@ npm run smoke       # builds the server, then runs isolated API checks
 `npm run smoke`:
 - spawns `server/dist/index.js` on port **8899**;
 - uses a fresh temp data dir and `APP_TOKEN=smoke-test-token`;
-- clears `DEEPSEEK_API_KEY` so no external model call is made;
+- starts with no models, so no external model call is made;
 - covers auth, folders/subfolders/cycles, upload, PDF streaming, annotations/crops/notes, search,
   settings, model masking/disable, skills, empty history, no-model chat error and cleanup.
 

@@ -471,9 +471,9 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: '',
-    base_url: 'https://api.deepseek.com',
+    base_url: '',
     api_key: '',
-    model_name: 'deepseek-flash',
+    model_name: '',
   });
 
   async function submit(event: React.FormEvent) {

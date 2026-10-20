@@ -1,5 +1,18 @@
 # Development log
 
+## 2026-10-20 — remove provider seeding
+
+- Removed the `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` and `DEEPSEEK_MODEL` environment variables and
+  the `config.deepseek` object. A fresh database no longer seeds any AI provider.
+- New model forms start empty, so users enter their own base URL, API key and model name in
+  **Settings → Models**. Removed the DeepSeek defaults from the form.
+- Updated README, PLAN, DEPLOYMENT, AGENTS and `.env.example`: provider credentials are configured in
+  the app, never read from environment variables. Genericized the DeepSeek URL example in the model
+  route validation and the SSE examples in ARCHITECTURE.
+- Added a smoke check that a fresh database starts with zero models.
+- Verified: `npm run typecheck`, web production build, `npm run smoke` (32 checks), Docker image
+  rebuild and healthy container. No current documentation or env file references a seeded provider.
+
 ## 2026-10-20 — remove vision toggle, simplify UI copy
 
 - Removed the per-model **Vision** checkbox, `VISION` badge, API field and client types. Box-crop

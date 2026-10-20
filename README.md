@@ -84,10 +84,6 @@ Requirements: **Node.js 22+** and npm.
 
 ```bash
 npm install
-
-# Optional: seed the debug model on a fresh database
-export DEEPSEEK_API_KEY=sk-your-key
-
 npm run dev
 ```
 
@@ -98,17 +94,18 @@ npm run dev
   The token is intentionally not written to the server log.
 - Shortcut: open `http://localhost:5173/?token=<TOKEN>`; the token is stored and removed from the URL.
 
-### Debug model
+### Configure a model
 
-On the first run, if `DEEPSEEK_API_KEY` is present, PaperLens seeds this model:
+PaperLens does not preselect a provider. After the first login, open **Settings → Models → New
+model** and enter your own:
 
-| Setting | Value |
-| --- | --- |
-| Base URL | `https://api.deepseek.com` |
-| API key | `$DEEPSEEK_API_KEY` |
-| Model | `deepseek-flash` |
+- provider base URL;
+- API key;
+- model name;
+- optional display name.
 
-Any other OpenAI-compatible provider can be added in **Settings → Models**.
+Any OpenAI-compatible provider works. Models can be reordered, tested, disabled or deleted from the
+same panel. No AI provider credentials are read from environment variables.
 
 ### Production
 
@@ -124,7 +121,7 @@ Docker is the recommended deployment:
 ```bash
 git clone -b deploy git@github.com:Goer17/paper-lens.git
 cd paper-lens
-cp .env.example .env      # optional: set APP_TOKEN or DEEPSEEK_API_KEY
+cp .env.example .env      # optional: pin APP_TOKEN or configure the publish address
 docker compose up -d --build
 docker compose exec paperlens cat /data/token.txt
 ```
@@ -157,9 +154,6 @@ user has reviewed and approved them. See [AGENTS.md](AGENTS.md).
 
 | Variable | Purpose |
 | --- | --- |
-| `DEEPSEEK_API_KEY` | Seeds the debug model on the first empty database |
-| `DEEPSEEK_BASE_URL` | Defaults to `https://api.deepseek.com` |
-| `DEEPSEEK_MODEL` | Defaults to `deepseek-flash` |
 | `HOST` | API bind address, default `127.0.0.1` |
 | `PORT` | API port, default `8787` |
 | `APP_TOKEN` | Override the generated workspace token |

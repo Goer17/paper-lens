@@ -115,21 +115,6 @@ function seed() {
       now(),
     );
   }
-
-  const models = db.prepare('SELECT COUNT(*) AS n FROM models').get() as { n: number };
-  if (models.n === 0 && config.deepseek.apiKey) {
-    db.prepare(
-      `INSERT INTO models (id, name, base_url, api_key, model_name, enabled, sort_order, created_at)
-       VALUES (?, ?, ?, ?, ?, 1, 0, ?)`,
-    ).run(
-      newId(),
-      'DeepSeek Flash',
-      config.deepseek.baseUrl,
-      config.deepseek.apiKey,
-      config.deepseek.model,
-      now(),
-    );
-  }
 }
 
 seed();

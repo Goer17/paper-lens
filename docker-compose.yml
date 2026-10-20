@@ -16,7 +16,7 @@ services:
       HOST: 0.0.0.0
       PORT: "8787"
       PAPER_READER_DATA: /data
-    # Optional: copy .env.example to .env to seed DEEPSEEK_API_KEY or APP_TOKEN.
+    # Optional: copy .env.example to .env to pin APP_TOKEN or set PAPERLENS_BIND.
     env_file:
       - path: .env
         required: false

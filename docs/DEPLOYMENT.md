@@ -17,7 +17,7 @@ Requirements: Docker Engine 24+ with Compose v2.24+ (for optional `env_file`).
 git clone -b deploy git@github.com:Goer17/paper-lens.git
 cd paper-lens
 
-# Optional: seed a model or pin a token.
+# Optional: pin a token or configure the publish address.
 cp .env.example .env
 $EDITOR .env
 
@@ -37,7 +37,8 @@ docker compose exec paperlens cat /data/token.txt
 
 If `APP_TOKEN` is set in `.env`, that value is used and no token file is written.
 
-Open <http://127.0.0.1:8787/?token=TOKEN> once; the browser remembers the token.
+Open <http://127.0.0.1:8787/?token=TOKEN> once; the browser remembers the token. Then add your own
+AI provider in **Settings → Models** — no model is seeded from environment variables.
 
 Useful commands:
 
@@ -131,7 +132,6 @@ HOST=127.0.0.1
 PORT=8787
 PAPER_READER_DATA=/var/lib/paperlens
 APP_TOKEN=replace-with-a-long-random-token
-# DEEPSEEK_API_KEY=...   # optional debug model seed
 ```
 
 ```bash

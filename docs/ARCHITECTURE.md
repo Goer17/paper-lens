@@ -164,7 +164,7 @@ folder sets `collection_id` to `NULL` (Uncategorized).
 
 ```
 event: meta
-data: {"model":"DeepSeek Flash","modelName":"deepseek-flash","attempt":1,"total":2}
+data: {"model":"Example Model","modelName":"example-model","attempt":1,"total":2}
 
 event: tool_call
 data: {"id":"call_…","name":"read_page","args":"{\"page\":1}"}
@@ -176,7 +176,7 @@ event: delta
 data: {"text":"## Answer…"}
 
 event: done
-data: {"userMessageId":"…","assistantMessageId":"…","model":"DeepSeek Flash","error":null,"aborted":false}
+data: {"userMessageId":"…","assistantMessageId":"…","model":"Example Model","error":null,"aborted":false}
 ```
 
 ## Skills
