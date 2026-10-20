@@ -14,7 +14,6 @@ function publicModel(row: ModelRow) {
     base_url: row.base_url,
     model_name: row.model_name,
     enabled: Boolean(row.enabled),
-    vision: Boolean(row.vision),
     sort_order: row.sort_order,
     created_at: row.created_at,
     has_key: Boolean(key),
@@ -54,12 +53,11 @@ modelsRouter.post('/', (req, res) => {
   const baseUrl = validateBaseUrl(asString(req.body?.base_url, 'base_url', { max: 500 }));
   const apiKey = asString(req.body?.api_key, 'api_key', { max: 500 });
   const modelName = asString(req.body?.model_name, 'model_name', { max: 200 });
-  const vision = req.body?.vision ? 1 : 0;
   const id = newId();
   db.prepare(
-    `INSERT INTO models (id, name, base_url, api_key, model_name, enabled, vision, sort_order, created_at)
-     VALUES (?, ?, ?, ?, ?, 1, ?, ?, ?)`,
-  ).run(id, name, baseUrl, apiKey, modelName, vision, orderedModels().length, now());
+    `INSERT INTO models (id, name, base_url, api_key, model_name, enabled, sort_order, created_at)
+     VALUES (?, ?, ?, ?, ?, 1, ?, ?)`,
+  ).run(id, name, baseUrl, apiKey, modelName, orderedModels().length, now());
   const row = db.prepare('SELECT * FROM models WHERE id = ?').get(id) as ModelRow;
   res.status(201).json({ model: publicModel(row) });
 });
@@ -90,9 +88,6 @@ modelsRouter.patch('/:id', (req, res) => {
   }
   if (typeof req.body?.api_key === 'string' && req.body.api_key.trim() && !req.body.api_key.startsWith('••')) {
     db.prepare('UPDATE models SET api_key = ? WHERE id = ?').run(req.body.api_key.trim(), row.id);
-  }
-  if (req.body?.vision !== undefined) {
-    db.prepare('UPDATE models SET vision = ? WHERE id = ?').run(req.body.vision ? 1 : 0, row.id);
   }
   if (req.body?.enabled !== undefined) {
     const enabled = req.body.enabled ? 1 : 0;

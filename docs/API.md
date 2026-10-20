@@ -91,13 +91,13 @@ or `"1"`.
 | Method | Path | Body | Description |
 | --- | --- | --- | --- |
 | `GET` | `/models` | — | Ordered list; keys are masked |
-| `POST` | `/models` | `{ name, base_url, api_key, model_name, vision? }` | Add at lowest priority |
+| `POST` | `/models` | `{ name, base_url, api_key, model_name }` | Add at lowest priority |
 | `PATCH` | `/models/:id` | any of the fields + `enabled` | Edit. Disabling moves it to the bottom |
 | `POST` | `/models/:id/move` | `{ direction: "up" \| "down" }` | Swap priority |
 | `POST` | `/models/:id/test` | — | Ping the provider with `max_tokens: 16` |
 | `DELETE` | `/models/:id` | — | Delete |
 
-Model object: `{ id, name, base_url, model_name, enabled, vision, sort_order, has_key, key_hint,
+Model object: `{ id, name, base_url, model_name, enabled, sort_order, has_key, key_hint,
 created_at }`. Raw API keys are never returned.
 
 ## Skills

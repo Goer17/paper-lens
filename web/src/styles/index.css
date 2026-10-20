@@ -637,16 +637,6 @@ button {
   align-items: center;
 }
 
-.status-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ok);
-  display: inline-block;
-  margin-right: 4px;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ok) 18%, transparent);
-}
-
 /* -------------------------------- reader --------------------------------- */
 
 .reader {
@@ -1229,14 +1219,6 @@ button {
   font-size: 15px;
   margin: 0 0 8px;
   letter-spacing: 0.02em;
-}
-
-.empty-card p {
-  font-size: 10.5px;
-  color: var(--muted);
-  line-height: 1.8;
-  margin: 0 auto 20px;
-  max-width: 420px;
 }
 
 .dropzone {
@@ -1957,12 +1939,6 @@ button {
   letter-spacing: 0.1em;
 }
 
-.settings-head .sub {
-  font-size: 8.5px;
-  color: var(--muted);
-  letter-spacing: 0.05em;
-}
-
 .settings-head .spacer {
   flex: 1;
 }
@@ -2019,13 +1995,6 @@ button {
   margin: 4px 0 8px;
 }
 
-.settings-note {
-  font-size: 9px;
-  color: var(--muted);
-  line-height: 1.65;
-  margin: 6px 0 12px;
-}
-
 .setting-table {
   width: 100%;
   border: 1px solid var(--border);
@@ -2054,12 +2023,6 @@ button {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.setting-label .hint {
-  font-size: 8.5px;
-  color: var(--muted);
-  line-height: 1.4;
 }
 
 .setting-value {
@@ -2222,12 +2185,6 @@ button {
   color: var(--muted);
 }
 
-.badge.vision {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 25%, var(--border));
-  background: var(--accent-tint);
-}
-
 .model-controls {
   display: flex;
   gap: 2px;
@@ -2312,19 +2269,6 @@ button {
 .field input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
-}
-
-.check-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9.5px;
-  color: var(--text-2);
-  margin: 8px 0;
-}
-
-.check-row input {
-  accent-color: var(--accent);
 }
 
 .form-actions {
@@ -2588,13 +2532,6 @@ button {
   letter-spacing: 0.01em;
 }
 
-.login-sub {
-  font-size: 9.5px;
-  line-height: 1.7;
-  color: var(--muted);
-  margin: 0 0 18px;
-}
-
 .login-label {
   display: block;
   font-size: 8.5px;
@@ -2656,23 +2593,6 @@ button {
   line-height: 1.5;
   border-radius: 5px;
   padding: 6px 8px;
-}
-
-.login-hint {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px dashed var(--border);
-  font-size: 8.5px;
-  color: var(--muted);
-  line-height: 1.75;
-}
-
-.login-hint code {
-  font-family: var(--font-mono);
-  background: var(--panel-2);
-  border-radius: 3px;
-  padding: 1px 4px;
-  color: var(--text-2);
 }
 
 .login-foot {

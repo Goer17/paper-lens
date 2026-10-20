@@ -139,7 +139,6 @@ export function SettingsModal({
         <div className="settings-head">
           <SettingsIcon size={15} style={{ color: 'var(--accent)' }} />
           <span className="title">SETTINGS</span>
-          <span className="sub">workspace preferences</span>
           <span className="spacer" />
           <button className="icon-btn" onClick={onClose} title="Close settings">
             <X size={15} />
@@ -164,10 +163,7 @@ export function SettingsModal({
               <div className="settings-section-title">APPEARANCE</div>
               <div className="setting-table">
                 <div className="setting-row">
-                  <div className="setting-label">
-                    Theme color
-                    <span className="hint">Accent used by buttons, selections and citations.</span>
-                  </div>
+                  <div className="setting-label">Theme color</div>
                   <div className="setting-value">
                     <div className="swatches">
                       {THEME_PRESETS.map((preset) => (
@@ -214,10 +210,6 @@ export function SettingsModal({
                   </div>
                 </div>
               </div>
-              <p className="settings-note">
-                Settings are stored locally in SQLite. The token that protects this workspace lives
-                in <code>server/data/token.txt</code>.
-              </p>
             </>
           )}
 
@@ -226,10 +218,7 @@ export function SettingsModal({
               <div className="settings-section-title">PREFERENCES</div>
               <div className="setting-table">
                 <div className="setting-row">
-                  <div className="setting-label">
-                    Response language
-                    <span className="hint">The assistant always answers in this language.</span>
-                  </div>
+                  <div className="setting-label">Response language</div>
                   <div className="setting-value">
                     <select
                       className="select"
@@ -245,15 +234,9 @@ export function SettingsModal({
                   </div>
                 </div>
                 <div className="setting-row">
-                  <div className="setting-label">
-                    Fallback strategy
-                    <span className="hint">Highest priority model is tried first.</span>
-                  </div>
+                  <div className="setting-label">Fallback strategy</div>
                   <div className="setting-value">
                     <span className="badge ok">AUTO FALLBACK</span>
-                    <span style={{ fontSize: 9, color: 'var(--muted)' }}>
-                      On failure, the next enabled model is called automatically.
-                    </span>
                   </div>
                 </div>
               </div>
@@ -269,7 +252,7 @@ export function SettingsModal({
                 )}
                 {!loading && !models.length && (
                   <div className="sidebar-empty" style={{ border: '1px dashed var(--border)', borderRadius: 7 }}>
-                    No models configured. Add one below — it will be used immediately.
+                    No models configured.
                   </div>
                 )}
                 {models.map((model, index) => (
@@ -286,7 +269,6 @@ export function SettingsModal({
                         <span className={`badge ${model.enabled ? 'ok' : 'off'}`}>
                           {model.enabled ? 'ACTIVE' : 'DISABLED'}
                         </span>
-                        {model.vision && <span className="badge vision">VISION</span>}
                       </div>
                       <span className="model-sub">
                         <span>{model.model_name}</span>
@@ -360,7 +342,7 @@ export function SettingsModal({
                           void (async () => {
                             const ok = await confirm({
                               title: 'Delete model',
-                              message: `Delete model "${model.name}"? Its API key will be removed.`,
+                              message: `Delete model "${model.name}"? This cannot be undone.`,
                               confirmLabel: 'DELETE',
                               danger: true,
                             });
@@ -392,11 +374,6 @@ export function SettingsModal({
           {tab === 'skills' && (
             <>
               <div className="settings-section-title">AGENT SKILLS</div>
-              <p className="settings-note" style={{ marginTop: 0 }}>
-                Upload a <code>.zip</code> containing a skill folder with <code>SKILL.md</code>. The
-                archive is extracted automatically and the agent can load it with the{' '}
-                <code>use_skill</code> tool.
-              </p>
               <div className="skill-grid">
                 {skills.map((skill) => (
                   <div className="skill-card" key={skill.id} title={skill.description}>
@@ -404,7 +381,7 @@ export function SettingsModal({
                       <Folder size={14} />
                     </div>
                     <div className="skill-name">{skill.name}</div>
-                    <div className="skill-desc">{skill.description || 'No description provided.'}</div>
+                    <div className="skill-desc">{skill.description}</div>
                     <div className="skill-foot">
                       <span>{skill.file_count} FILES</span>
                       <button
@@ -460,7 +437,6 @@ export function SettingsModal({
                     </span>
                   )}
                   <span>{skillUploading ? 'EXTRACTING…' : 'UPLOAD SKILL .ZIP'}</span>
-                  <span style={{ color: 'var(--muted)', fontSize: 7.5 }}>drag & drop accepted</span>
                 </button>
               </div>
               <input
@@ -475,8 +451,7 @@ export function SettingsModal({
               />
               <div className="skills-note">
                 <Check size={9} style={{ verticalAlign: '-1px', color: 'var(--ok)' }} /> Skills are
-                read-only instructions for the agent. The server never executes uploaded scripts;
-                the agent can read them with <code>read_skill_file</code> and follow the workflow.
+                read-only; uploaded scripts are never executed.
               </div>
             </>
           )}
@@ -499,7 +474,6 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
     base_url: 'https://api.deepseek.com',
     api_key: '',
     model_name: 'deepseek-flash',
-    vision: false,
   });
 
   async function submit(event: React.FormEvent) {
@@ -511,7 +485,6 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
         base_url: form.base_url.trim(),
         api_key: form.api_key.trim(),
         model_name: form.model_name.trim(),
-        vision: form.vision,
       });
       setForm({ ...form, name: '', api_key: '' });
       await onCreated();
@@ -540,7 +513,6 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
               <input
                 required
                 value={form.base_url}
-                placeholder="https://api.deepseek.com"
                 onChange={(event) => setForm({ ...form, base_url: event.target.value })}
               />
             </div>
@@ -550,7 +522,6 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
                 required
                 type="password"
                 value={form.api_key}
-                placeholder="sk-…"
                 autoComplete="off"
                 onChange={(event) => setForm({ ...form, api_key: event.target.value })}
               />
@@ -560,7 +531,6 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
               <input
                 required
                 value={form.model_name}
-                placeholder="deepseek-flash"
                 onChange={(event) => setForm({ ...form, model_name: event.target.value })}
               />
             </div>
@@ -568,19 +538,10 @@ function AddModelForm({ onCreated, onNotice }: AddProps) {
               <label>Display name (optional)</label>
               <input
                 value={form.name}
-                placeholder="DeepSeek Flash"
                 onChange={(event) => setForm({ ...form, name: event.target.value })}
               />
             </div>
           </div>
-          <label className="check-row">
-            <input
-              type="checkbox"
-              checked={form.vision}
-              onChange={(event) => setForm({ ...form, vision: event.target.checked })}
-            />
-            Vision model — receives cropped images for box citations
-          </label>
           <div className="form-actions">
             <button type="button" className="btn" onClick={() => setOpen(false)}>
               CANCEL

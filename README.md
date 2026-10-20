@@ -48,7 +48,7 @@ skills stay on your machine in SQLite and a local data directory.
 
 - Slide-over chat with streaming SSE, visible tool-call traces and full conversation history.
 - Drag annotations into the composer to add citations like `@3:underline_1`; box citations also carry
-  a crop that vision-capable models can inspect.
+  a PNG crop that is sent as an image input.
 - Tools for full-text search, page reading, annotation reading, paper info and installed skills.
 - Strict Markdown rendering with GFM tables/code and **KaTeX LaTeX** (`$...$`, `$$...$$`, `\(...\)`,
   `\[...\]` outside code blocks). Citation labels in answers are clickable and jump to the page.
@@ -56,9 +56,9 @@ skills stay on your machine in SQLite and a local data directory.
 
 ### Models, skills and UI
 
-- OpenAI-compatible provider list: base URL, API key, model name, optional vision flag. Reorder by
-  priority; failures fall back to the next enabled model automatically. Disabled models move to the
-  bottom; keys are never returned unmasked.
+- OpenAI-compatible provider list: base URL, API key and model name. Reorder by priority; failures
+  fall back to the next enabled model automatically. Disabled models move to the bottom; keys are
+  never returned unmasked. Models that reject image input produce a clear vision error.
 - Response language preference (English, Chinese, Japanese, Korean, Spanish, French, German).
 - Agent **Skills**: upload a `.zip`, it is extracted safely, parsed from `SKILL.md`, and shown in a
   four-column folder grid. The agent loads skills through `use_skill` / `read_skill_file`.

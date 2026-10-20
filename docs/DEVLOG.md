@@ -1,5 +1,23 @@
 # Development log
 
+## 2026-10-20 — remove vision toggle, simplify UI copy
+
+- Removed the per-model **Vision** checkbox, `VISION` badge, API field and client types. Box-crop
+  images are now attached as `image_url` parts for every model by default.
+- Text-only providers now surface a clear error instead of being pre-filtered: if the provider rejects
+  an image request, the warning/error says the model does not support image input (vision) and
+  suggests removing the box citation or using a vision-capable model. The fallback chain still runs.
+- Kept the legacy `models.vision` SQLite column for compatibility but stopped reading, writing or
+  exposing it. Added smoke checks that the field is gone and legacy PATCH updates are ignored.
+- Removed technical and redundant UI copy: the SQLite/library paragraph on the empty reader, the
+  `LOCAL · SQLITE` / `MONO UI` sidebar footer, the login token instructions, settings hints and
+  notes, and the "workspace preferences" subtitle.
+- Removed model-form input placeholders and placeholder-style strings (`No description provided.`,
+  `drag & drop accepted`).
+- Verified: `npm run typecheck`, production builds for both packages, `npm run smoke` (31 checks),
+  Docker image rebuild, healthy container, authenticated models call without a `vision` field, and a
+  public HTTP 200 from an external check node.
+
 ## 2026-10-20 — opt-in public binding
 
 - Added `PAPERLENS_BIND` (published address, default `127.0.0.1`) and `PAPERLENS_PORT` (host port,

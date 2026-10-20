@@ -48,7 +48,6 @@ export type Model = {
   base_url: string;
   model_name: string;
   enabled: boolean;
-  vision: boolean;
   sort_order: number;
   created_at: string;
   has_key: boolean;

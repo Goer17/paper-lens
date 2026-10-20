@@ -256,7 +256,7 @@ Schema lives inline in `server/src/db.ts`. There is no migration framework yet.
 | `annotations` | `paper_id` cascade, `type`, `page`, `label`, `color`, `rects` JSON, `text`, `note`, `image_name` |
 | `paper_pages` | lazy text cache, PK `(paper_id, page)` |
 | `messages` | chat history, `citations`/`tools` JSON |
-| `models` | provider chain, `enabled`, `vision`, `sort_order`, plaintext `api_key` (local only) |
+| `models` | provider chain, `enabled`, `sort_order`, plaintext `api_key` (local only); legacy `vision` column is unused |
 | `skills` | extracted skill metadata |
 | `settings` | key/value (`theme_color`, `ai_language`, `notes_rail`) |
 
@@ -422,7 +422,7 @@ Primary file: `server/src/services/llm.ts`.
 - Models are ordered by `sort_order`; only `enabled = 1` are called.
 - Disable moves a model to the bottom and disables it; delete removes it.
 - Fallback happens only if there is no streamed visible text and no successful tool execution.
-- `vision` models receive box-crop images as `image_url` parts; non-vision models receive text only.
+- Box-crop images are attached as `image_url` parts for every model. If a provider rejects image input, the fallback chain continues and the UI reports that the model does not support vision. The legacy `vision` column is ignored.
 - Never return un-masked keys to the client.
 
 ### SSE contract

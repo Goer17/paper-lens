@@ -54,6 +54,7 @@ db.exec(`
     api_key TEXT NOT NULL,
     model_name TEXT NOT NULL,
     enabled INTEGER NOT NULL DEFAULT 1,
+    -- Legacy compatibility: the app no longer reads or exposes this column.
     vision INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL,
     created_at TEXT NOT NULL
@@ -118,8 +119,8 @@ function seed() {
   const models = db.prepare('SELECT COUNT(*) AS n FROM models').get() as { n: number };
   if (models.n === 0 && config.deepseek.apiKey) {
     db.prepare(
-      `INSERT INTO models (id, name, base_url, api_key, model_name, enabled, vision, sort_order, created_at)
-       VALUES (?, ?, ?, ?, ?, 1, 0, 0, ?)`,
+      `INSERT INTO models (id, name, base_url, api_key, model_name, enabled, sort_order, created_at)
+       VALUES (?, ?, ?, ?, ?, 1, 0, ?)`,
     ).run(
       newId(),
       'DeepSeek Flash',
@@ -166,7 +167,6 @@ export type ModelRow = {
   api_key: string;
   model_name: string;
   enabled: number;
-  vision: number;
   sort_order: number;
   created_at: string;
 };

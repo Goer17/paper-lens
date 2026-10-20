@@ -556,10 +556,8 @@ export function Sidebar({
         </div>
 
         <div className="sidebar-foot">
-          <span>
-            <span className="status-dot" /> LOCAL · SQLITE
-          </span>
-          <span>MONO UI</span>
+          <span>PAPERLENS</span>
+          <span>v0.1.0</span>
         </div>
       </div>
     </aside>
