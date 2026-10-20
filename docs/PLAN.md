@@ -128,7 +128,8 @@ them while keeping data local and the interface small.
   - keys never returned unmasked.
 - Automatic fallback to the next enabled model on failure before visible output/tool success.
 - Response language preference: English, Chinese, Japanese, Korean, Spanish, French, German.
-- Seed the debug model from `DEEPSEEK_API_KEY` on a fresh database.
+- Models are configured by the user in **Settings → Models**; no provider is seeded from environment
+  variables.
 
 ### 5.7 Skills — shipped
 
@@ -325,15 +326,11 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
 | Title detection latency | 20 s timeout, parallel calls, filename/metadata fallback |
 | Secret leakage | Masked model responses, no token logging, loopback binding |
 
-## 15. Debug configuration
+## 15. Model configuration
 
-| Setting | Value |
-| --- | --- |
-| Base URL | `https://api.deepseek.com` |
-| API key | `$DEEPSEEK_API_KEY` |
-| Model | `deepseek-flash` |
-
-Seeded only when the database has no models and the env var is present.
+PaperLens ships without a preselected provider. The user adds any OpenAI-compatible model in
+**Settings → Models** with a base URL, API key and model name. Provider credentials are never read
+from environment variables.
 
 ## 16. Development workflow
 

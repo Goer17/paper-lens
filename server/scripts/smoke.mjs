@@ -83,7 +83,6 @@ async function main() {
       PORT: String(PORT),
       PAPER_READER_DATA: dataDir,
       APP_TOKEN: TOKEN,
-      DEEPSEEK_API_KEY: '',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -110,6 +109,9 @@ async function main() {
     body: JSON.stringify({ token: TOKEN }),
   }, '');
   check(login.status === 200 && login.body.ok === true, 'login accepts the generated token');
+
+  const initialModels = await request('/api/models');
+  check(initialModels.body.models.length === 0, 'start with no seeded provider');
 
   const folder = await request('/api/collections', {
     method: 'POST',

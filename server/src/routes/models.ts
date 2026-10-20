@@ -36,7 +36,7 @@ function validateBaseUrl(value: string): string {
   try {
     url = new URL(value);
   } catch {
-    throw new HttpError(400, 'Base URL must be a valid URL, e.g. https://api.deepseek.com.');
+    throw new HttpError(400, 'Base URL must be a valid URL, e.g. https://api.example.com/v1.');
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     throw new HttpError(400, 'Base URL must use http or https.');

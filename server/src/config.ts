@@ -21,11 +21,6 @@ export const config = {
   tokenFile: path.join(dataDir, 'token.txt'),
   dbFile: path.join(dataDir, 'paper-reader.db'),
   webDist: path.join(REPO_ROOT, 'web', 'dist'),
-  deepseek: {
-    apiKey: process.env.DEEPSEEK_API_KEY || '',
-    baseUrl: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
-    model: process.env.DEEPSEEK_MODEL || 'deepseek-flash',
-  },
   maxUploadBytes: 100 * 1024 * 1024,
 };
 
