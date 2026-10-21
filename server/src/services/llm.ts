@@ -99,7 +99,8 @@ Rules:
 3. The user can attach annotations as citations. Each citation is labelled like @3:underline_1 (page 3, annotation underline_1). When you use the attached material, cite it inline with the exact label, e.g. [@3:underline_1]. Do not cite labels that were not provided or discovered through tools.
 4. For box annotations, the quoted text is the text captured inside the box; if an image is attached, inspect it.
 5. Format your final answer strictly in GitHub-flavoured Markdown: headings, lists, tables, code fences, and LaTeX math. Always wrap inline math in $...$ and display math in $$...$$ on its own lines (never \(...\) or \[...\], and never inside code fences). Keep answers focused and well structured.
-6. Use tools silently while thinking; do not describe the tool protocol in the final answer.${skillBlock}`;
+6. Use tools silently while thinking; do not describe the tool protocol in the final answer.
+7. TOOL BUDGET (hard requirement): you get a limited number of tool rounds, and the last round does not allow tools. Never repeat a tool call with identical arguments. If two or three searches or page reads do not surface the evidence you need, stop searching and answer with what you already have, saying explicitly what the paper does not contain. A final answer in prose is always expected; tool calls alone are not an answer.${skillBlock}`;
 }
 
 function paperTools(): ChatCompletionTool[] {
@@ -439,18 +440,41 @@ async function runModel(
     context.send('delta', { text });
   };
 
-  for (let step = 0; step < 6; step += 1) {
-    const stream = await client.chat.completions.create(
-      {
-        model: model.model_name,
-        messages,
-        tools,
-        tool_choice: 'auto',
-        stream: true,
-        temperature: 0.2,
-      },
-      { signal: context.signal },
-    );
+  // Total provider calls for one attempt: tool rounds plus a final answer-only
+  // round. Without that last round a model that keeps calling tools (or runs
+  // out of steps right after a useful result) returns no text at all.
+  const MAX_STEPS = 6;
+  const seenCalls = new Set<string>();
+
+  for (let step = 0; step < MAX_STEPS; step += 1) {
+    const forceAnswer = step === MAX_STEPS - 1;
+    let stream: Awaited<ReturnType<typeof client.chat.completions.create>>;
+    try {
+      stream = await client.chat.completions.create(
+        {
+          model: model.model_name,
+          messages,
+          tools,
+          tool_choice: forceAnswer ? 'none' : 'auto',
+          stream: true,
+          temperature: 0.2,
+        },
+        { signal: context.signal },
+      );
+    } catch (error) {
+      // Some OpenAI-compatible providers reject `tool_choice: 'none'`.
+      // Sending no tool definitions at all also forces a text answer.
+      if (!forceAnswer || context.signal.aborted) throw error;
+      stream = await client.chat.completions.create(
+        {
+          model: model.model_name,
+          messages,
+          stream: true,
+          temperature: 0.2,
+        },
+        { signal: context.signal },
+      );
+    }
 
     let stepText = '';
     let pendingText = '';
@@ -480,9 +504,11 @@ async function runModel(
     const calls = [...pending.entries()]
       .sort(([a], [b]) => a - b)
       .map(([, value]) => value)
-      .filter((call) => call.name);
+      .filter((call) => call.name)
+      .map((call) => ({ ...call, id: call.id || newId() }));
 
-    if (!calls.length) {
+    if (!calls.length || forceAnswer) {
+      // The final round cannot call tools: whatever text it produced is the answer.
       flush(pendingText);
       pendingText = '';
       break;
@@ -494,14 +520,46 @@ async function runModel(
       role: 'assistant',
       content: stepText || null,
       tool_calls: calls.map((call) => ({
-        id: call.id || newId(),
+        id: call.id,
         type: 'function' as const,
         function: { name: call.name, arguments: call.arguments || '{}' },
       })),
     });
 
     for (const call of calls) {
-      const trace: ToolTrace = { id: call.id || newId(), name: call.name, args: call.arguments };
+      const args = call.arguments || '{}';
+      const signature = `${call.name}\u0000${args}`;
+      if (seenCalls.has(signature)) {
+        // Repeating an identical call returns identical data and only burns
+        // the remaining tool rounds. Tell the model to answer instead.
+        const trace: ToolTrace = {
+          id: call.id,
+          name: call.name,
+          args,
+          ok: false,
+          summary: 'Duplicate call skipped. Use the earlier result and answer now.',
+        };
+        context.traces.push(trace);
+        context.send('tool_call', { id: trace.id, name: trace.name, args: trace.args });
+        context.send('tool_result', {
+          id: trace.id,
+          name: trace.name,
+          ok: false,
+          summary: trace.summary as string,
+        });
+        messages.push({
+          role: 'tool',
+          tool_call_id: trace.id,
+          content: JSON.stringify({
+            duplicate: true,
+            note: trace.summary,
+          }),
+        });
+        continue;
+      }
+      seenCalls.add(signature);
+
+      const trace: ToolTrace = { id: call.id, name: call.name, args };
       context.traces.push(trace);
       context.send('tool_call', { id: trace.id, name: trace.name, args: trace.args });
       try {
@@ -517,7 +575,7 @@ async function runModel(
         });
         messages.push({
           role: 'tool',
-          tool_call_id: call.id || trace.id,
+          tool_call_id: call.id,
           content: summary.slice(0, 24_000),
         });
       } catch (error) {
@@ -527,7 +585,7 @@ async function runModel(
         context.send('tool_result', { id: trace.id, name: trace.name, ok: false, summary: message });
         messages.push({
           role: 'tool',
-          tool_call_id: call.id || trace.id,
+          tool_call_id: call.id,
           content: JSON.stringify({ error: message }),
         });
       }
@@ -662,7 +720,7 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
     }
   }
 
-  if (emittedText.value || traces.length || finalModel) {
+  if (context.fullText.value.trim()) {
     const assistantId = newId();
     db.prepare(
       'INSERT INTO messages (id, paper_id, role, content, citations, tools, model, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -684,7 +742,13 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
       aborted: payload.signal.aborted,
     });
   } else {
-    send('error', { message: errorMessage || 'The model returned an empty response.' });
+    // Never persist an assistant row without text: it would replay as an empty
+    // bubble and the user cannot tell that the model never answered.
+    send('error', {
+      message:
+        errorMessage ||
+        'The model used all of its tool calls without writing an answer. Ask again or rephrase the question.',
+    });
   }
   res.end();
 }

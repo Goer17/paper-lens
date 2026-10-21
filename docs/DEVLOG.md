@@ -1,5 +1,27 @@
 # Development log
 
+## 2026-10-21 — chat always ends with an answer
+
+- Fixed the “model only calls tools and never speaks” dead end. The tool loop now makes five tool
+  rounds with `tool_choice: "auto"` and one final round with `tool_choice: "none"` (falling back to
+  a request without tool definitions if a provider rejects `none`). Previously a model that spent all
+  six steps on retrieval returned no text at all.
+- Identical tool calls (same name and arguments) in one turn are skipped and answered with a
+  `duplicate` tool result, so repeated `search_paper` queries no longer burn the budget. Tool-call
+  ids are also resolved once, so the assistant `tool_calls` entry and its `tool` reply always match.
+- Empty assistant messages are no longer persisted. If an attempt still produces no text, the stream
+  ends with an `error` event (`The model used all of its tool calls without writing an answer…`)
+  instead of saving a blank row. Legacy blank rows render a muted “No answer was returned for this
+  turn.” note instead of an empty bubble.
+- The system prompt now states the tool budget, forbids repeating a call with identical arguments and
+  asks for an explicit answer when two or three lookups fail.
+- Root cause seen in the live Qwen3-VL thread: 10–12 `search_paper`/`read_page` calls across the six
+  steps, then the loop ended before the model could answer; the empty assistant row was filtered out
+  of the 16-message history, so each follow-up started the same hunt again.
+- Verified: `npm run typecheck`, `npm run build`, `npm run smoke` (32 checks) and an isolated fake
+  OpenAI-compatible provider covering always-calls-tools, duplicate calls and a provider that ignores
+  `tool_choice` (no text → explicit error, nothing saved).
+
 ## 2026-10-20 — remove provider seeding
 
 - Removed the `DEEPSEEK_API_KEY`, `DEEPSEEK_BASE_URL` and `DEEPSEEK_MODEL` environment variables and

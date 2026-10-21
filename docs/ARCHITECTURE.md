@@ -146,16 +146,22 @@ folder sets `collection_id` to `NULL` (Uncategorized).
    - last 16 messages (with citation excerpts re-attached);
    - current user message + `<citation>` blocks.
 3. For box citations, the saved PNG crop is attached as an image part.
-4. The provider chain is ordered by `sort_order`. Each model runs the OpenAI SDK streaming tool loop
-   (up to 6 steps):
-   - `search_paper`, `read_page`, `read_pages`, `list_annotations`, `read_annotation`,
-     `get_paper_info`, `list_skills`, `use_skill`, `read_skill_file`.
+4. The provider chain is ordered by `sort_order`. Each model runs the OpenAI SDK streaming tool loop:
+   five rounds with `tool_choice: "auto"`, then one final round with `tool_choice: "none"` (or no tool
+   definitions if the provider rejects `none`) so the attempt always ends with prose. Tools:
+   `search_paper`, `read_page`, `read_pages`, `list_annotations`, `read_annotation`,
+   `get_paper_info`, `list_skills`, `use_skill`, `read_skill_file`.
+   - An identical tool call (same name and arguments) is skipped and answered with a
+     `duplicate` result telling the model to use the earlier result and answer.
+   - A model that still writes no text is not persisted: the SSE stream ends with an `error` event
+     instead of saving an empty assistant message.
 5. SSE events: `meta`, `delta`, `tool_call`, `tool_result`, `warning`, `error`, `done`.
 6. Short narrative preambles before tool calls are buffered and dropped; content longer than 240
    characters streams immediately.
 7. If a model fails before emitting content or executing a tool, the next model is tried and a
    `warning` is sent. Otherwise the error is surfaced and the partial answer is kept.
-8. The assistant message and tool trace are saved to SQLite; the UI can replay the thread.
+8. The assistant message and tool trace are saved to SQLite; the UI can replay the thread. Rows
+   without answer text are never written, and the chat renders a muted note for legacy empty rows.
 9. Markdown is rendered with `react-markdown` + GFM + `remark-math`/`rehype-katex`. Backslash
    delimiters `\(...\)` and `\[...\]` are normalized to dollar delimiters outside fenced/inline code
    before parsing, and citation tokens (`@page:label`) become clickable links.

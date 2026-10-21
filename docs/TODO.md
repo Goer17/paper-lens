@@ -25,6 +25,7 @@ Living task list. Keep completed items for history; move detailed discussion to 
 - [x] Annotation toolbar: recolour, note, delete
 - [x] Double-click note stickers aligned to annotations in a notes rail
 - [x] SSE AI chat with Markdown rendering, tool trace, stop, clear, history
+- [x] Tool loop always ends with a prose answer (forced final round, duplicate-call guard)
 - [x] Drag annotations into chat as `@page:label` citations; box crops
 - [x] Model list with priority, enable/disable-to-bottom, test, delete
 - [x] Model fallback chain + warning event

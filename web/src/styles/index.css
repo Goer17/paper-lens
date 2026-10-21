@@ -1464,6 +1464,14 @@ button {
   min-width: 0;
 }
 
+.msg-content-empty {
+  width: 100%;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
 .chat-citations {
   display: flex;
   flex-wrap: wrap;
