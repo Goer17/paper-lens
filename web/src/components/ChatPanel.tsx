@@ -504,7 +504,9 @@ function ChatBubble({ message, onCitationClick }: BubbleProps) {
             <LoaderCircle size={10} className="spin-icon" style={{ marginLeft: 4 }} />
           </span>
         </div>
-      ) : null}
+      ) : (
+        <div className="msg-content-empty">No answer was returned for this turn.</div>
+      )}
     </div>
   );
 }

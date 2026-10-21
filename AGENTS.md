@@ -401,7 +401,15 @@ Primary file: `server/src/services/llm.ts`.
 
 - `search_paper`, `read_page`, `read_pages`, `list_annotations`, `read_annotation`,
   `get_paper_info`, and (when skills exist) `list_skills`, `use_skill`, `read_skill_file`.
-- Max 6 tool steps per model attempt.
+- Six provider calls per model attempt: five tool rounds (`tool_choice: "auto"`) and one final
+  answer round (`tool_choice: "none"`, or no `tools` if the provider rejects it). The final round is
+  what guarantees prose instead of a silent tool-only turn.
+- Identical tool calls (same name and arguments) are skipped in a turn and replaced with a
+  `duplicate` tool result.
+- An attempt that ends without answer text is not persisted; the stream ends with `error` so the UI
+  never shows an empty assistant bubble.
+- The system prompt tells the model to stop searching after two or three unsuccessful lookups and to
+  state what the paper does not contain.
 - Tool traces are streamed and persisted as JSON on the assistant message.
 - Short model narration before a tool call (under 240 chars) is buffered and discarded; longer text
   streams immediately. Do not remove this without considering UX.
