@@ -445,30 +445,37 @@ async function runModel(
   // out of steps right after a useful result) returns no text at all.
   const MAX_STEPS = 6;
   const seenCalls = new Set<string>();
+  const finalAnswerInstruction =
+    'You have finished using tools. Write the final answer to the user\'s question now in prose, using the evidence above. Do not call tools. If the evidence is insufficient, state exactly what is missing. Format the answer in Markdown.';
+  let finalAnswerMessages: ChatCompletionMessageParam[] | null = null;
 
   for (let step = 0; step < MAX_STEPS; step += 1) {
     const forceAnswer = step === MAX_STEPS - 1;
     let stream: Awaited<ReturnType<typeof client.chat.completions.create>>;
-    try {
+    if (forceAnswer) {
+      // Do not send tool definitions at all in the final round: some
+      // OpenAI-compatible providers ignore tool_choice='none' and keep calling
+      // tools until the budget is gone, leaving no prose answer.
+      finalAnswerMessages = [
+        ...messages,
+        { role: 'user', content: finalAnswerInstruction },
+      ];
       stream = await client.chat.completions.create(
         {
           model: model.model_name,
-          messages,
-          tools,
-          tool_choice: forceAnswer ? 'none' : 'auto',
+          messages: finalAnswerMessages,
           stream: true,
           temperature: 0.2,
         },
         { signal: context.signal },
       );
-    } catch (error) {
-      // Some OpenAI-compatible providers reject `tool_choice: 'none'`.
-      // Sending no tool definitions at all also forces a text answer.
-      if (!forceAnswer || context.signal.aborted) throw error;
+    } else {
       stream = await client.chat.completions.create(
         {
           model: model.model_name,
           messages,
+          tools,
+          tool_choice: 'auto',
           stream: true,
           temperature: 0.2,
         },
@@ -576,7 +583,7 @@ async function runModel(
         messages.push({
           role: 'tool',
           tool_call_id: call.id,
-          content: summary.slice(0, 24_000),
+          content: summary.slice(0, 8_000),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Tool execution failed.';
@@ -589,6 +596,45 @@ async function runModel(
           content: JSON.stringify({ error: message }),
         });
       }
+    }
+  }
+
+  if (!context.fullText.value.trim()) {
+    // Last-resort answer-only call. This also covers providers that returned
+    // an empty final choice, a tool call despite no tool definitions, or a
+    // response that only contained reasoning metadata.
+    const fallbackMessages =
+      finalAnswerMessages ?? [
+        ...messages,
+        { role: 'user' as const, content: finalAnswerInstruction },
+      ];
+    try {
+      const fallback = await client.chat.completions.create(
+        {
+          model: model.model_name,
+          messages: fallbackMessages,
+          stream: true,
+          temperature: 0.2,
+        },
+        { signal: context.signal },
+      );
+      let fallbackText = '';
+      for await (const chunk of fallback) {
+        const content = chunk.choices[0]?.delta?.content;
+        if (!content) continue;
+        fallbackText += content;
+        if (fallbackText.length >= 240) {
+          flush(fallbackText);
+          fallbackText = '';
+        }
+      }
+      flush(fallbackText);
+    } catch (error) {
+      if (context.signal.aborted) throw error;
+      console.warn(
+        `[llm] final answer fallback failed for ${model.model_name}:`,
+        error instanceof Error ? error.message : error,
+      );
     }
   }
 
@@ -699,6 +745,16 @@ export async function streamChat(res: Response, payload: ChatPayload): Promise<v
       });
       const result = await runModel(model, context, baseMessages);
       finalModel = result.modelLabel;
+      if (!result.content.trim()) {
+        errorMessage = `${model.name} returned no final answer after its tool calls.`;
+        if (index < models.length - 1) {
+          context.send('warning', {
+            message: `${model.name} returned no final answer. Trying the next model…`,
+          });
+          continue;
+        }
+        break;
+      }
       errorMessage = '';
       break;
     } catch (error) {
